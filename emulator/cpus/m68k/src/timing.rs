@@ -224,7 +224,7 @@ impl M68kInstructionTiming {
                 self.add_word_v_long(*size, 6, 8).add_per_rep(2).add_target(*size, target)
             },
 
-            Instruction::Bcc(_, _) => self.add_internal(8).add_on_branch(2),
+            Instruction::Bcc(_, _, _) => self.add_internal(8).add_on_branch(2),
             Instruction::BRA(_) => self.add_internal(10),
             Instruction::BSR(_) => self.add_internal(18),
 

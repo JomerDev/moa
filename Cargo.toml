@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "emulator/core",
     "emulator/frontends/common",
-    "emulator/frontends/console",
+    "emulator/frontends/console", "emulator/frontends/lightcommander",
     "emulator/frontends/minifb",
     "tests/harte_tests",
     "tests/rad_tests"

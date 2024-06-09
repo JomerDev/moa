@@ -484,7 +484,7 @@ where
         match condition {
             Condition::True => Ok(Instruction::BRA(disp)),
             Condition::False => Ok(Instruction::BSR(disp)),
-            _ => Ok(Instruction::Bcc(condition, disp)),
+            _ => Ok(Instruction::Bcc(condition, disp, self.decoder.end)),
         }
     }
 

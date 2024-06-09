@@ -93,7 +93,7 @@ where
     fn step(&mut self, now: Instant, bus: &mut Bus) -> Result<Instant, Self::Error> {
         let cycle = M68kCycle::new(self, now);
 
-        let mut executor = cycle.begin(self, &mut *bus);
+        let mut executor: M68kCycleExecutor<&mut Bus, Instant> = cycle.begin(self, &mut *bus);
         executor.check_breakpoints()?;
         executor.step()?;
 
@@ -160,7 +160,7 @@ where
         self.process_error(result)?;
 
         // TODO this is called by the step function directly, but should be integrated better
-        //self.check_pending_interrupts(system)?;
+        // self.check_pending_interrupts(system)?;
         Ok(())
     }
 
@@ -307,6 +307,9 @@ where
 
     #[inline]
     pub fn execute_current(&mut self) -> Result<(), M68kError<Bus::Error>> {
+        let i = self.cycle.decoder.instruction.to_string();
+        let span = tracing::trace_span!("pc", count = self.cycle.decoder.start, instruction = i, ssp = self.state.ssp); 
+        let _enter = span.enter();
         match self.cycle.decoder.instruction {
             Instruction::ABCD(src, dest) => self.execute_abcd(src, dest),
             Instruction::ADD(src, dest, size) => self.execute_add(src, dest, size),
@@ -317,7 +320,7 @@ where
             Instruction::ANDtoSR(value) => self.execute_and_to_sr(value),
             Instruction::ASL(count, target, size) => self.execute_asl(count, target, size),
             Instruction::ASR(count, target, size) => self.execute_asr(count, target, size),
-            Instruction::Bcc(cond, offset) => self.execute_bcc(cond, offset),
+            Instruction::Bcc(cond, offset, _) => self.execute_bcc(cond, offset),
             Instruction::BRA(offset) => self.execute_bra(offset),
             Instruction::BSR(offset) => self.execute_bsr(offset),
             Instruction::BCHG(bitnum, target, size) => self.execute_bchg(bitnum, target, size),
@@ -1276,7 +1279,7 @@ where
     fn execute_reset(&mut self) -> Result<(), M68kError<Bus::Error>> {
         self.require_supervisor()?;
         // TODO this only resets external devices and not internal ones
-        Ok(())
+        self.reset_cpu()
     }
 
     fn execute_rol(&mut self, count: Target, target: Target, size: Size) -> Result<(), M68kError<Bus::Error>> {
@@ -1664,11 +1667,18 @@ where
 
     fn get_address_sized(&mut self, addr: M68kAddress, size: Size) -> Result<u32, M68kError<Bus::Error>> {
         let is_supervisor = self.is_supervisor();
-        self.cycle.memory.read_data_sized(&mut self.bus, is_supervisor, addr, size)
+        let res = self.cycle.memory.read_data_sized(&mut self.bus, is_supervisor, addr, size);
+        if let Ok(val) = res {
+            let str_size = size.to_string();
+            tracing::trace_span!("read", addr, size = str_size, val);
+        }
+        res
     }
 
     fn set_address_sized(&mut self, addr: M68kAddress, value: u32, size: Size) -> Result<(), M68kError<Bus::Error>> {
         let is_supervisor = self.is_supervisor();
+        let str_size = size.to_string();
+        tracing::trace_span!("write", addr, size = str_size, value);
         self.cycle
             .memory
             .write_data_sized(&mut self.bus, is_supervisor, addr, size, value)

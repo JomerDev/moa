@@ -99,7 +99,7 @@ pub enum Instruction {
     ASL(Target, Target, Size),
     ASR(Target, Target, Size),
 
-    Bcc(Condition, i32),
+    Bcc(Condition, i32, u32),
     BRA(i32),
     BSR(i32),
     BCHG(Target, Target, Size),
@@ -397,10 +397,9 @@ impl fmt::Display for Instruction {
             Instruction::ANDtoSR(value) => write!(f, "andiw\t#{:#04x}, %sr", value),
             Instruction::ASL(src, dest, size) => write!(f, "asl{}\t{}, {}", size, src, dest),
             Instruction::ASR(src, dest, size) => write!(f, "asr{}\t{}, {}", size, src, dest),
-
-            Instruction::Bcc(cond, offset) => write!(f, "b{}\t{}", cond, offset),
+            Instruction::Bcc(cond, offset, target) => write!(f, "b{}\t{} ({:#010x})", cond, offset, target.wrapping_add(*offset as u32)),
             Instruction::BRA(offset) => write!(f, "bra\t{}", offset),
-            Instruction::BSR(offset) => write!(f, "bra\t{}", offset),
+            Instruction::BSR(offset) => write!(f, "bsr\t{}", offset),
             Instruction::BCHG(src, dest, size) => write!(f, "bchg{}\t{}, {}", size, src, dest),
             Instruction::BCLR(src, dest, size) => write!(f, "bclr{}\t{}, {}", size, src, dest),
             Instruction::BSET(src, dest, size) => write!(f, "bset{}\t{}, {}", size, src, dest),
