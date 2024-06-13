@@ -331,7 +331,7 @@ where
             Instruction::BFCLR(target, offset, width) => self.execute_bfclr(target, offset, width),
             Instruction::BFEXTS(target, offset, width, reg) => self.execute_bfexts(target, offset, width, reg),
             Instruction::BFEXTU(target, offset, width, reg) => self.execute_bfextu(target, offset, width, reg),
-            //Instruction::BFFFO(target, offset, width, reg) => {},
+            // Instruction::BFFFO(target, offset, width, reg) if self.cycle.decoder.cputype >= M68kType::MC68010 => {},
             //Instruction::BFINS(reg, target, offset, width) => {},
             Instruction::BFSET(target, offset, width) => self.execute_bfset(target, offset, width),
             Instruction::BFTST(target, offset, width) => self.execute_bftst(target, offset, width),
@@ -551,7 +551,7 @@ where
     fn execute_bcc(&mut self, cond: Condition, offset: i32) -> Result<(), M68kError<Bus::Error>> {
         let should_branch = self.get_current_condition(cond);
         if should_branch {
-            if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add(offset as u32)) {
+            if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add_signed(offset)) {
                 self.state.pc -= 2;
                 return Err(err);
             }
@@ -560,7 +560,7 @@ where
     }
 
     fn execute_bra(&mut self, offset: i32) -> Result<(), M68kError<Bus::Error>> {
-        if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add(offset as u32)) {
+        if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add_signed(offset)) {
             self.state.pc -= 2;
             return Err(err);
         }
@@ -571,7 +571,7 @@ where
         self.push_long(self.state.pc)?;
         let sp = *self.get_stack_pointer_mut();
         self.debugger.stack_tracer.push_return(sp);
-        if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add(offset as u32)) {
+        if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add_signed(offset)) {
             self.state.pc -= 2;
             return Err(err);
         }
@@ -761,7 +761,7 @@ where
             let next = ((get_value_sized(self.state.d_reg[reg as usize], Size::Word) as u16) as i16).wrapping_sub(1);
             set_value_sized(&mut self.state.d_reg[reg as usize], next as u32, Size::Word);
             if next != -1 {
-                if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add(offset as u32)) {
+                if let Err(err) = self.set_pc(self.cycle.decoder.start.wrapping_add(2).wrapping_add_signed(offset as i32)) {
                     self.state.pc -= 2;
                     return Err(err);
                 }

@@ -269,7 +269,7 @@ fn get_name_for_addr(addr: u64) -> &'static str {
         0x0B0000..=0x0B3FFF => "LED_4",
         0x0B4000..=0x0B7FFF => "AD_WR",
         0x0B8000..=0x0BBFFF => "AD_RD",
-        0x0BC000..=0x0BFFFF => "AD_RD",
+        0x0BC000..=0x0BFFFF => "574_AD",
         _ => "UNKNOWN",
     }
 }
