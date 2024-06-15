@@ -1,6 +1,6 @@
 use femtos::{Frequency, Instant};
 
-use moa_core::{Address, Addressable, Device, Error, MemoryBlock, System, Transmutable};
+use moa_core::{Address, Addressable, Error, MemoryBlock, System, Transmutable};
 
 use moa_m68k::{M68k, M68kType};
 use moa_peripherals_motorola::MC68681;
@@ -16,24 +16,24 @@ fn main() {
 
     let mut monitor = MemoryBlock::load("../../../binaries/lc-12_2/LC_Version_1_32.bin").unwrap();
     monitor.read_only();
-    system.add_addressable_device(0x00000000, Device::new(monitor)).unwrap();
+    system.add_addressable_device(0x00000000, monitor).unwrap();
 
     let ram = MemoryBlock::new(vec![0; 0x00020000]);
     // ram.load_at(0, "").unwrap();
-    system.add_addressable_device(0x00020000, Device::new(ram)).unwrap();
+    system.add_addressable_device(0x00020000, ram).unwrap();
 
     let serial = MC68681::default();
-    system.add_addressable_device(0x00040000, Device::new(serial)).unwrap();
+    system.add_addressable_device(0x00040000, serial).unwrap();
     let cpu = M68k::from_type(M68kType::MC68008, Frequency::from_mhz(8));
 
     let printer = PeripheralAddressSpace {
         has_written: false,
     };
-    system.add_addressable_device(0x00080000, Device::new(printer)).unwrap();
+    system.add_addressable_device(0x00080000, printer).unwrap();
 
-    let cpu_device = Device::new(cpu);
-    let _cpu_device_id = cpu_device.id();
-    system.add_interruptable_device("cpu", cpu_device.clone()).unwrap();
+    // let cpu_device = Device::new(cpu);
+    // let _cpu_device_id = cpu_device.id();
+    system.add_interruptable_device("cpu", cpu).unwrap();
 
     system.run_forever().unwrap();
 

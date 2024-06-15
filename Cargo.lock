@@ -715,8 +715,6 @@ dependencies = [
  "moa-m68k",
  "moa-peripherals-generic",
  "moa-peripherals-motorola",
- "moa-systems-computie",
- "moa-systems-genesis",
  "simple_logger",
  "tracing",
  "tracing-subscriber",
