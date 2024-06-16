@@ -33,7 +33,7 @@ fn main() {
 
     // let cpu_device = Device::new(cpu);
     // let _cpu_device_id = cpu_device.id();
-    system.add_interruptable_device("cpu", cpu).unwrap();
+    let cpu_id = system.add_interruptable_device("cpu", cpu).unwrap();
 
     system.run_forever().unwrap();
 
