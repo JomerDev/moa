@@ -206,6 +206,7 @@ pub struct M68k<Instant> {
     pub debugger: M68kDebugger,
     pub stats: M68kStatistics,
     pub cycle: Option<M68kCycle<Instant>>,
+    
 }
 
 impl Default for M68kState {

@@ -36,6 +36,81 @@ impl<T: Copy> Signal<T> {
     }
 }
 
+pub struct SignalInput<T:Copy>(Rc<Cell<T>>);
+
+impl<T: Copy> SignalInput<T> {
+    pub fn get(&self) -> T {
+        self.0.get()
+    }
+}
+
+pub struct SignalOutput<T:Copy>(Rc<Cell<T>>);
+
+impl<T: Copy> SignalOutput<T> {
+    pub fn set(&self, value: T) {
+        self.0.set(value);
+    }
+}
+
+pub struct SignalablePin<T: Copy> {
+    input: Option<SignalInput<T>>,
+    output: Option<SignalOutput<T>>,
+    transfer_value: bool,
+    disconnected: bool,
+}
+
+impl<T: Copy> Default for SignalablePin<T> {
+    fn default() -> Self {
+        Self {
+            disconnected: false,
+            transfer_value: true,
+            input: None,
+            output: None,
+        }
+    }
+}
+
+impl<T: Copy> SignalablePin<T> {
+    pub fn connect_input(&mut self, input: SignalInput<T>) {
+        self.input = Some(input);
+    }
+
+    pub fn disconnect_input(&mut self) {
+        self.input = None;
+    }
+
+    pub fn connect_output(&mut self, output: SignalOutput<T>) {
+        self.output = Some(output);
+    }
+
+    pub fn disconnect_output(&mut self) {
+        self.output = None;
+    }
+
+    pub fn set_transfer_value(&mut self, transfer_value: bool) {
+        self.transfer_value = transfer_value;
+    }
+}
+
+pub trait Signalable {
+    type InputPins;
+    type OutputPins;
+
+    fn check_signals(&mut self);
+
+    fn attach_input<T: Copy>(&mut self, which: Self::InputPins, input: SignalInput<T>);
+
+    fn attach_output<T: Copy>(&mut self, which: Self::OutputPins, output: SignalOutput<T>);
+
+    // fn attach<T: Copy>(&mut self, which: Self::InputOutputPins, input: SignalInput<T>, output: SignalOutput<T>);
+
+    // fn detach<T: Copy>(&mut self, which: Self::Pins, input: bool, output: bool);
+
+    fn detach_input<T: Copy>(&mut self, which: Self::InputPins);
+
+    fn detach_output<T: Copy>(&mut self, which: Self::OutputPins);
+}
+
 #[derive(Clone, Debug)]
 pub struct EdgeSignal(Signal<bool>);
 
